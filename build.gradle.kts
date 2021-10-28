@@ -24,6 +24,15 @@ repositories {
     mavenCentral()
 }
 
+//这里是关键
+dependencies {
+//    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+//    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.18.1")
+    //wizard-template.jar 是Android studio下的文件  路径~\Android studio\plugins\android\lib 保持和as编译器一致
+    compileOnly(files("libs/wizard-template.jar"))
+//    compileOnly(files("libs/arms-template-plugin-0.0.6.jar"))
+}
+
 // Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
 intellij {
     pluginName.set(properties("pluginName"))
@@ -33,7 +42,9 @@ intellij {
     updateSinceUntilBuild.set(true)
 
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-    plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
+    plugins.set(
+        properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty)
+    )
 }
 
 // Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
@@ -73,12 +84,12 @@ tasks {
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
         pluginDescription.set(
-            projectDir.resolve("README.md").readText().lines().run {
+            projectDir.resolve("README_EN.md").readText().lines().run {
                 val start = "<!-- Plugin description -->"
                 val end = "<!-- Plugin description end -->"
 
                 if (!containsAll(listOf(start, end))) {
-                    throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
+                    throw GradleException("Plugin description section not found in README_EN.md:\n$start ... $end")
                 }
                 subList(indexOf(start) + 1, indexOf(end))
             }.joinToString("\n").run { markdownToHTML(this) }
@@ -93,7 +104,10 @@ tasks {
     }
 
     runPluginVerifier {
-        ideVersions.set(properties("pluginVerifierIdeVersions").split(',').map(String::trim).filter(String::isNotEmpty))
+        ideVersions.set(
+            properties("pluginVerifierIdeVersions").split(',').map(String::trim)
+                .filter(String::isNotEmpty)
+        )
     }
 
     // Configure UI tests plugin
@@ -117,6 +131,7 @@ tasks {
         // pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
+        channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }
+            .split('.').first()))
     }
 }
